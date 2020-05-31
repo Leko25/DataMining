@@ -3,6 +3,7 @@ from pyspark import SparkContext, SparkConf
 import os
 import sys
 import logging
+import time
 
 def isValidFiles(review_file, business_file):
     if not os.path.isfile(review_file) or not os.path.isfile(business_file): 
@@ -115,6 +116,8 @@ def main(argv):
     out_dict = {}
 
     if if_spark == "spark":
+        start = time.time()
+
         # Get Error Logs
         logging.getLogger("org").setLevel(logging.ERROR)
 
@@ -145,7 +148,13 @@ def main(argv):
 
         out_dict["result"] = top_avg_stars
 
+        end = time.time()
+
+        print("Task 2 ", end - start)
+
     else:
+        start = time.time()
+
         id_cat, cat_count = loadBusinessJson(business_file)
         
         cat_count = mapBusinessReviews(review_file, id_cat, cat_count)
@@ -168,6 +177,10 @@ def main(argv):
         top_avg_stars = get_top_avg(avg_cat, n_arg)
 
         out_dict["result"] = top_avg_stars
+
+        end = time.time()
+
+        print("Task 2 ", end - start)
 
     with open(output_file, "w") as file:
         json.dump(out_dict, file)

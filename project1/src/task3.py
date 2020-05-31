@@ -1,10 +1,10 @@
 import json
-from pyspark import SparkContext, SparkConf
-import time
-import sys
 import os
-import findspark
-findspark.init("/home/lasdot/Documents/Dev-Spark/spark-2.3.2-bin-hadoop2.7")
+import sys
+import time
+
+from pyspark import SparkConf, SparkContext
+
 
 def isValidFiles(input_file):
     if not os.path.isfile(input_file):
@@ -49,14 +49,11 @@ def customized(sc, input_file, n_partitions, n_arg):
 
     lines = sc.textFile(input_file)
 
-    rdd = lines.map(json.loads) \
-               .map(lambda x: (x["business_id"], 1)) \
-               .partitionBy(n_partitions, lambda x: hash(x)) \
-               .cache()
+    rdd = lines.map(json.loads).map(lambda x: (x["business_id"], 1)).partitionBy(n_partitions, lambda x: hash(x)).cache()
 
     num_partitions = rdd.getNumPartitions()
 
-    n_items = rdd.mapPartititonsWithIndex(getPartitionMap).collect()
+    n_items = rdd.mapPartitionsWithIndex(getPartitionMap).collect()
     n_items = n_items[1:]
 
     business_sum = rdd.reduceByKey(lambda x, y: x + y)
@@ -85,6 +82,7 @@ def main(argv):
         return
 
     n_arg = int(n_arg)
+    n_partitions = int(n_partitions)
     out_dict = {}
 
     # Create Spark configuration and context
