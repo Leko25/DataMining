@@ -40,7 +40,7 @@ def default(sc, input_file, n_arg):
 
     end = time.time()
 
-    print("Default Time ", end - start)
+    print("Default Time ----> ", end - start)
 
     return (num_partitions, n_items, results)
 
@@ -56,7 +56,7 @@ def customized(sc, input_file, n_partitions, n_arg):
     n_items = rdd.mapPartitionsWithIndex(getPartitionMap).collect()
     n_items = n_items[1:]
 
-    business_sum = rdd.reduceByKey(lambda x, y: x + y)
+    business_sum = rdd.reduceByKey(lambda x, y: x + y, 8)
 
     popular_businesses = business_sum.filter(lambda x: x[1] > n_arg)
 
@@ -65,7 +65,7 @@ def customized(sc, input_file, n_partitions, n_arg):
 
     end = time.time()
 
-    print('Cutomized Time', end - start)
+    print('Cutomized Time ----> ', end - start)
 
     return (num_partitions, n_items, results)
 
