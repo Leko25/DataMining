@@ -26,10 +26,6 @@ def loadStopWords(file_path):
         data = file.read()
     return data.decode("utf-8").split()
 
-# def filterPunctuation(jsonObj):
-#     words = jsonObj["text"].translate(str.maketrans('', '', string.punctuation))
-#     return words.split()
-
 def filterPunctuation(text):
     words = text.translate(str.maketrans('', '', string.punctuation))
     return words.split()
@@ -103,11 +99,6 @@ def main(argv):
     top_users = user_reviews.take(m_arg)
 
     stopwords = loadStopWords(stop_words_file)
-
-    # text_lines = sc.textFile(input_file)
-    # text_rdd = text_lines.flatMap(lambda x: filterPunctuation(json.loads(x))) \
-    #                      .map(lambda x: (x.lower(), 1)) \
-    #                      .filter(lambda x: filterWords(x[0])).partitionBy(10, lambda x: hash(x)).cache()
 
     text_rdd = rdd.flatMap(lambda x: filterPunctuation(x[2])) \
                          .map(lambda x: (x.lower(), 1)) \

@@ -11,23 +11,17 @@ def isValidFiles(input_file):
         return False
     return True
 
-def getPartitionMap(idx, partition):
-    count = 0
-    for _ in partition: count += 1
-    return idx, count
 
-
-def default(sc, input_file, n_arg):
+def default(sc, input_file, n_partitions, n_arg):
     start = time.time()
 
-    lines = sc.textFile(input_file)
+    lines = sc.textFile(input_file).coalesce(n_partitions).cache()
 
-    rdd = lines.map(json.loads).map(lambda x: (x["business_id"], 1)).cache()
+    rdd = lines.map(json.loads).map(lambda x: (x["business_id"], 1))
 
     num_partitions = rdd.getNumPartitions()
 
-    n_items = rdd.mapPartitionsWithIndex(getPartitionMap).collect()
-    n_items = n_items[1:]
+    n_items = rdd.glom().map(len).collect()
 
     business_sum = rdd.reduceByKey(lambda x, y: x + y)
 
@@ -53,8 +47,7 @@ def customized(sc, input_file, n_partitions, n_arg):
 
     num_partitions = rdd.getNumPartitions()
 
-    n_items = rdd.mapPartitionsWithIndex(getPartitionMap).collect()
-    n_items = n_items[1:]
+    n_items = rdd.glom().map(len).collect()
 
     business_sum = rdd.reduceByKey(lambda x, y: x + y, 8)
 
@@ -90,7 +83,7 @@ def main(argv):
     sc = SparkContext(conf=conf)
 
     if partition_type == "default":
-        (num_partitions, n_items, results) = default(sc, input_file, n_arg)
+        (num_partitions, n_items, results) = default(sc, input_file, n_partitions, n_arg)
         out_dict["n_partitions"] = num_partitions
         out_dict["n_items"] = n_items
         out_dict["result"] = results
