@@ -88,6 +88,9 @@ def get_top_avg(results, n_arg):
     top_avg_stars = []
 
     for star, cateogories in avg_cat_dict.items():
+        if n_arg == 0:
+            break
+        
         cateogories = sorted(cateogories)
 
         for category in cateogories:
