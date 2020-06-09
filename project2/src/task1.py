@@ -233,12 +233,12 @@ def main(argv):
         print("BUCKET SIZE ------------------------> ", BUCKET_SIZE)
         candidates = rdd.mapPartitions(lambda chunk: pcy(chunk)) \
                         .flatMap(lambda pairs: pairs) \
-                        .distinct().sortBy(lambda pairs: len(pairs)).collect()
+                        .distinct().sortBy(lambda pairs: (len(pairs), pairs)).collect()
         
         freq_itemsets = rdd.flatMap(lambda itemset: son(itemset, candidates)) \
                            .reduceByKey(lambda x, y: x + y) \
                            .filter(lambda pairs: pairs[1] >= SUPPORT) \
-                           .sortBy(lambda pairs: len(pairs[0])) \
+                           .sortBy(lambda pairs: (len(pairs[0]), pairs[0])) \
                            .map(lambda pairs: pairs[0]) \
                            .collect()
         
@@ -257,13 +257,13 @@ def main(argv):
 
         candidates = rdd.mapPartitions(lambda chunk: pcy(chunk)) \
                         .flatMap(lambda pairs: pairs) \
-                        .distinct().sortBy(lambda pairs: len(pairs)).collect()
+                        .distinct().sortBy(lambda pairs: (len(pairs), pairs)).collect()
 
         
         freq_itemsets = rdd.flatMap(lambda itemset: son(itemset, candidates)) \
                            .reduceByKey(lambda x, y: x + y, 8) \
                            .filter(lambda pairs: pairs[1] >= SUPPORT) \
-                           .sortBy(lambda pairs: len(pairs[0])) \
+                           .sortBy(lambda pairs: (len(pairs[0]), pairs[0])) \
                            .map(lambda pairs: pairs[0]) \
                            .collect()
         
