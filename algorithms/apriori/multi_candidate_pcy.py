@@ -104,7 +104,6 @@ def multi_candidate_pcy():
     idx = 1
 
     candidates_dict[idx] = [(item) for item in freq_itemset]
-    count = 0
 
     while True:
         idx += 1
