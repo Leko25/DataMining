@@ -218,7 +218,7 @@ def main(argv):
 
     config = SparkConf().setMaster("local[*]").setAppName("taks1")
     sc = SparkContext(conf=config).getOrCreate()
-    lines = sc.textFile(input_file, 3)  #TODO
+    lines = sc.textFile(input_file, 3)
 
     if case_num == "1":
         rdd = lines.map(lambda x: (x.split(',')[0], x.split(',')[1])) \
