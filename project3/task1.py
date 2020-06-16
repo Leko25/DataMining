@@ -10,8 +10,8 @@ from functools import reduce
 from pyspark import SparkContext, SparkConf
 
 # TODO comment import and lines below
-import findspark
-findspark.init("/Users/chukuemekaogudu/Documents/Dev-Spark-Apache/Apache-Spark/spark-2.4.5-bin-hadoop2.7")
+# import findspark
+# findspark.init("/Users/chukuemekaogudu/Documents/Dev-Spark-Apache/Apache-Spark/spark-2.4.5-bin-hadoop2.7")
 
 
 # Set random seed
@@ -77,7 +77,7 @@ def lsh(bands, lsh_hash_funcs):
         business_id = pair[0]
         hash_sum = hash(tuple(pair[1]))
         hash_func = lsh_hash_funcs[band_id - 1]
-        hash_val = hahs_func(hash_sum)
+        hash_val = hash_func(hash_sum)
         hash_table[hash_val].append(business_id)
 
     results = [v for _, v in hash_table.items()]
@@ -154,13 +154,13 @@ def main(argv):
             .cache()
 
     # LSH Implementation
-    lsh_hash_funcs = [lsh_hash(i) for i in BANDS]
+    lsh_hash_funcs = [lsh_hash(i) for i in range(BANDS)]
 
     candidates = signature_mat.map(lambda x: (x[0], generate_bands(x[1]))) \
             .map(group_bands) \
             .flatMap(lambda x: x) \
             .groupByKey() \
-            .map(lsh) \
+            .map(lambda x: lsh(x, lsh_hash_funcs)) \
             .flatMap(lambda x: x[1]) \
             .filter(lambda x: len(x) > 1) \
                     .flatMap(lambda pairs: [pair for pair in combinations(pairs, 2)]) \
@@ -170,7 +170,13 @@ def main(argv):
     print("Total Candidate pairs ---------------> ", len(candidates))
 
     results = compute_similarity(candidates, business_user_dict, reversed_b_dict)
-    print("Accuracy -----------------> ", len(results))
+    print("Accuracy -----------------> " + str(len(results)//59435 * 100) + " %")
+
+    # Wirte to file
+    with open(output_file, "w+") as file:
+        for line in results:
+            file.writelines(json.dumps(line) + "\n")
+        file.close()
 
 if __name__ == "__main__":
     start = time.time()
