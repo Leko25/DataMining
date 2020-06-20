@@ -39,7 +39,7 @@ def compute_tf(doc, business_id):
     for word, count in word_dict.items():
         if count > threshold:
             tf.append(((business_id, word), count / float(n_count)))
-            
+
     if len(tf) == 0:
         for word, count in word_dict.items():
             tf.append(((business_id, word), count / float(n_count)))
@@ -112,11 +112,11 @@ def main(argv):
             .filter(lambda x: x[1] != None and len(x[1]) > 0) \
             .reduceByKey(lambda x, y: list(set(x)) + list(set(y))) \
             .collectAsMap()
-            
+
     model += convert_to_model(business_profile, "business_profile")
-    
+
     model += convert_to_model(user_profile, "user_profile")
-    
+
     with open(model_file, "w+") as file:
         for line in model:
             file.writelines(json.dumps(line) + "\n")
