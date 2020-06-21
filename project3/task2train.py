@@ -53,12 +53,7 @@ def get_top_words(tfidf):
 
 
 def convert_to_model(profile, model_type):
-    model = []
-    if model_type.split("_")[1] == "profile":
-        model = [{"description": model_type, "id": k, "profile": v} for k, v in profile.items()]
-    else:
-        model = [{"description": model_type, "id": k, "token": v} for k, v in profile.items()]
-    return model
+    return [{"description": model_type, "id": k, "profile": v} for k, v in profile.items()]
 
 
 def main(argv):
@@ -79,20 +74,12 @@ def main(argv):
 
     lines = sc.textFile(train_file).map(json.loads).cache()
 
-    user_dict = lines.map(lambda x: x["user_id"]).distinct().zipWithIndex().collectAsMap()
-
-    business_dict = lines.map(lambda x: x["business_id"]).distinct().zipWithIndex().collectAsMap()
-
-    model = convert_to_model(business_dict, "business_tokens")
-
-    model += convert_to_model(user_dict, "user_tokens")
-
-    business_text_tf = lines.map(lambda x: (business_dict[x["business_id"]], filter_words(x["text"]))) \
+    business_text_tf = lines.map(lambda x: (x["business_id"], filter_words(x["text"]))) \
             .reduceByKey(lambda x, y: x + y, 7) \
             .flatMap(lambda x: compute_tf(x[1], x[0])) \
             .cache()
 
-    num_doc = len(business_dict)
+    num_doc = lines.map(lambda x: x["business_id"]).distinct().count()
 
     business_text_idf = business_text_tf.map(lambda x: (x[0][1], x[0][0])) \
             .groupByKey() \
@@ -108,12 +95,12 @@ def main(argv):
 
     business_profile = business_tfidf.mapValues(lambda x: [word_tokens[word] for word in x]).collectAsMap()
 
-    user_profile = lines.map(lambda x: (user_dict[x["user_id"]], business_profile.get(business_dict[x["business_id"]]))) \
+    user_profile = lines.map(lambda x: (x["user_id"], business_profile.get(x["business_id"]))) \
             .filter(lambda x: x[1] != None and len(x[1]) > 0) \
             .reduceByKey(lambda x, y: list(set(x)) + list(set(y))) \
             .collectAsMap()
 
-    model += convert_to_model(business_profile, "business_profile")
+    model = convert_to_model(business_profile, "business_profile")
 
     model += convert_to_model(user_profile, "user_profile")
 
