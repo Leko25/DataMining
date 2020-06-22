@@ -44,7 +44,8 @@ def main(argv):
         tokens_business = {v: k for k, v in business_tokens.items()}
 
         rdd = lines.map(lambda  x: (business_tokens[x["business_id"]], (x["user_id"], x["stars"]))) \
-                   .groupByKey().filter(lambda x: len(x[1]) >= 3) \
+                   .groupByKey() \
+                   .filter(lambda x: len(x[1]) >= 3) \
                    .mapValues(dict) \
                    .cache()
 
@@ -61,6 +62,9 @@ def main(argv):
             for line in results:
                 file.writelines(json.dumps({"b1": tokens_business[line[0][0]], "b2": tokens_business[line[0][1]], "sim": line[1]}) + "\n")
             file.close()
+
+    else:
+        pass
 
 if __name__ == "__main__":
     start = time.time()
