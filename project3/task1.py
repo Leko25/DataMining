@@ -55,7 +55,6 @@ def generate_bands(signature):
     window = length//BANDS
     idx = 1
     for i in range(0, length, window):
-        start = i
         bands.append((idx, signature[i: i + window]))
         idx += 1
     return bands
@@ -170,7 +169,7 @@ def main(argv):
     print("Total Candidate pairs ---------------> ", len(candidates))
 
     results = compute_similarity(candidates, business_user_dict, reversed_b_dict)
-    print("Accuracy -----------------> " + str(len(results)//59435 * 100) + " %")
+    print("Accuracy -----------------> " + str(len(results)/59435 * 100) + " %")
 
     # Wirte to file
     with open(output_file, "w+") as file:
